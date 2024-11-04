@@ -25,8 +25,7 @@ const main = async () => {
 
     console.info(`DONE! Process up`);
 
-
-    process.on("SIGINT", async () => {
+    const gracefulShutdown = async () => {
         console.log("Attempting to save browser state...");
         const {localStorageConfig} = await config;
         await saveCookieClickerState(page, localStorageConfig)
@@ -34,7 +33,11 @@ const main = async () => {
         await browserServer.close();
         await httpServer.close();
         process.exit(0);
-    })
+    }
+
+
+    process.on("SIGINT", gracefulShutdown);
+    process.on("SIGTERM", gracefulShutdown);
 }
 
 main().catch((e) => {

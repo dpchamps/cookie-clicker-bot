@@ -34,6 +34,10 @@ export const createScreenshotStreamingWebsocketServer = async () => {
             wss.on('connection', (ws) => {
                 if(ws.readyState !== ws.OPEN) return;
                 const wsStream = createWebSocketStream(ws);
+                wsStream.on('error', (e) => {
+                    wsStream.destroy(e)
+                    ws.close(500);
+                });
                 ws.on('close', () => wsStream.destroy());
                 screenShotStream.pipeWithClientStream(wsStream);
             });
