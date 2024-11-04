@@ -1,0 +1,27 @@
+{
+  "name": "cookie-clicker-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node ./src/index.ts",
+    "dev:debug": "NODE_OPTIONS='--inspect-brk' ts-node ./src/index.ts",
+    "build": "tsc && cp ./src/webapp/index.html ./dist/webapp/index.html",
+    "start": "node ./dist/index.js"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/http-server": "^0.12.4",
+    "@types/ws": "^8.5.13",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.48.2",
+    "ws": "^8.18.0"
+  }
+}

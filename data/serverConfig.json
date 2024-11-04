@@ -1,0 +1,5 @@
+{
+  "webSocketServerPort": 3333,
+  "httpServerPort": 8080,
+  "screenshotInterval": 1001
+}

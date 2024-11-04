@@ -1,0 +1,10 @@
+version: "3.3"
+
+services:
+  cookie_clicker:
+    build: .
+    ports:
+      - "8080:8080"
+      - "3333:3333"
+    volumes:
+      - ./data:/home/node/app/data
