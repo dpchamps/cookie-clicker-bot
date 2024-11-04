@@ -31,14 +31,18 @@ export const createScreenshotStreamingWebsocketServer = async () => {
         initializeStreamToPage: (page: Page) => {
             const screenShotStream = createIntervalStream(() => page.screenshot({fullPage: true}), serverConfig.get().screenshotInterval).pipe(new ScreenShotStream(), {end: false});
 
-            wss.on('connection', (ws) => {
+            wss.on('connection', (ws, req) => {
+                console.log(`[Server] Client Connected ${req.socket.remoteAddress} (${req.headers['x-forwarded-for']})`)
                 if(ws.readyState !== ws.OPEN) return;
                 const wsStream = createWebSocketStream(ws);
                 wsStream.on('error', (e) => {
                     wsStream.destroy(e)
                     ws.close(500);
                 });
-                ws.on('close', () => wsStream.destroy());
+                ws.on('close', () => {
+                    console.log(`[Server] Client Disconnected ${req.socket.remoteAddress} (${req.headers['x-forwarded-for']})`);
+                    wsStream.destroy()
+                });
                 screenShotStream.pipeWithClientStream(wsStream);
             });
         }

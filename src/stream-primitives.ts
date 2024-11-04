@@ -35,6 +35,7 @@ export class ScreenShotStream extends Writable {
 
         // Remove the client stream when it ends or is destroyed
         clientStream.on('close', () => {
+            console.log(`client stream closed. remaining connections: ${this.connections.size}`);
             this.connections.delete(clientStream);
             if(this.connections.size === 0){
                 console.log("corking");
@@ -50,6 +51,8 @@ export class ScreenShotStream extends Writable {
         const client = this.createClientStream();
         client.pipe(destination, {end: false});
         destination.on('close', () => {
+            console.log("ws stream closed")
+            client.unpipe(destination);
             client.destroy();
         });
     }
