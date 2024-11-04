@@ -9,6 +9,7 @@ export class ScreenShotStream extends Writable {
         super(options);
         this.buffer = [];
         this.bufferSize = bufferSize;
+        this.cork()
     }
 
     // Emit the new image to all connected listeners
@@ -35,12 +36,17 @@ export class ScreenShotStream extends Writable {
         // Remove the client stream when it ends or is destroyed
         clientStream.on('close', () => {
             this.connections.delete(clientStream);
+            if(this.connections.size === 0){
+                console.log("corking");
+                this.cork();
+            }
         });
 
         return clientStream;
     }
 
     pipeWithClientStream(destination: Writable){
+        this.uncork();
         const client = this.createClientStream();
         client.pipe(destination, {end: false});
         destination.on('close', () => {
@@ -58,18 +64,16 @@ export class ScreenShotStream extends Writable {
     }
 }
 
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+async function* executeFnWithDelay<T>(fn: () => Promise<T>|T, ms: number){
+    while(true){
+        await delay(ms);
+        console.info("Taking Screenshot");
+        yield await fn();
+    }
+}
+
 export const createIntervalStream = <T>(fn: () => Promise<T>|T, ms: number) => {
-    const stream = new Readable({
-        objectMode: true,
-        read(size: number) {}
-    });
-
-    const timer = setInterval(async () => {
-        const data = await fn();
-        stream.push(data);
-    }, ms);
-
-    stream.on('close', () => clearInterval(timer));
-
-    return stream;
+    return Readable.from(executeFnWithDelay(fn, ms));
 };
