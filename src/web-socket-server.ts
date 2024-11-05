@@ -1,8 +1,11 @@
-import {WebSocket, Server, createWebSocketStream} from "ws";
-import {Writable} from "stream";
-import {createIntervalStream, ScreenShotStream} from "./stream-primitives";
+import {WebSocket, createWebSocketStream} from "ws";
 import {Page} from "playwright";
-import {config} from "./config";
+import {config, PersistentFileInterface} from "./config";
+import {createIntervalStream} from "./streams/interval-stream";
+import {BroadcastStream} from "./streams/BroadcastStream";
+
+const createScreenShotStream = (page: Page, serverConfig: PersistentFileInterface<"serverConfig">) =>
+    createIntervalStream(() => page.screenshot({fullPage: true}), serverConfig.get().screenshotInterval);
 
 export const createScreenshotStreamingWebsocketServer = async () => {
     const {serverConfig} = await config;
@@ -29,7 +32,7 @@ export const createScreenshotStreamingWebsocketServer = async () => {
             })
         },
         initializeStreamToPage: (page: Page) => {
-            const screenShotStream = createIntervalStream(() => page.screenshot({fullPage: true}), serverConfig.get().screenshotInterval).pipe(new ScreenShotStream(), {end: false});
+            const screenShotStream = createScreenShotStream(page, serverConfig).pipe(new BroadcastStream(), {end: false})
 
             wss.on('connection', (ws, req) => {
                 console.log(`[Server] Client Connected ${req.socket.remoteAddress} (${req.headers['x-forwarded-for']})`)
