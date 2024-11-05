@@ -79,10 +79,15 @@ const persistentFileAccessor = async <T extends Configs['name']>(type: T, json =
             listeners.add(listener);
         },
         set: async (nextData) => {
-            const nextDataToWrite = json ? JSON.stringify(nextData, null, 2) : nextData;
-            assert(typeof nextDataToWrite === "string");
-            await fs.cp(filePath, `${filePath}__backup`)
-            await fs.writeFile(filePath, nextDataToWrite);
+            try{
+                const nextDataToWrite = json ? JSON.stringify(nextData, null, 2) : nextData;
+                assert(typeof nextDataToWrite === "string");
+                await fs.cp(filePath, `${filePath}__backup`)
+                await fs.writeFile(filePath, nextDataToWrite);
+            } catch(e){
+                console.error(`Failed to write`, e);
+            }
+
         }
     }
 }
