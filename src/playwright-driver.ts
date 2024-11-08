@@ -33,7 +33,7 @@ export const createCookieClickerPage = async (browser: Browser) => {
     const page = await browser.newPage();
     await page.setViewportSize({
         width: 1920,
-        height: 1080
+        height: 2000
     })
     const {localStorageConfig, pageConfig, aiConfig} = await config;
     await page.goto(pageConfig.get().cookieClickerPage);
