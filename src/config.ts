@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from 'path';
 import {Readable} from 'stream';
 import assert from "assert";
+import {createMutex} from "./pMutex";
 const DATA_DIRECTORY = path.join(__dirname, "../data");
 
 const PAGE_CONFIG_PATH = path.join(DATA_DIRECTORY, "pageConfig.json");
@@ -49,6 +50,7 @@ export type PersistentFileInterface<T extends string> = {
 const persistentFileAccessor = async <T extends Configs['name']>(type: T, json = true): Promise<PersistentFileInterface<T>> => {
     const filePath = ConfigMap[type];
     const listeners: Set<(x: DataOfConfig<T>) => Promise<void>|void> = new Set();
+    const lock = createMutex();
     const getFileData = async () => {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return  json ? JSON.parse(fileContents) : fileContents;
@@ -63,13 +65,15 @@ const persistentFileAccessor = async <T extends Configs['name']>(type: T, json =
 
     const watcher = Readable.from(asyncWatcher);
     watcher.on('data', async (fileData) => {
-        if(performance.now() - delta < 2500) return;
-        console.info(`${filePath} updated with ${JSON.stringify(fileData)}`);
-        data = await getFileData();
-        for(const listener of listeners){
-            await listener(data);
-        }
-        delta = performance.now();
+        await lock(async () => {
+            if(performance.now() - delta < 2500) return;
+            console.info(`${filePath} updated with ${JSON.stringify(fileData)}`);
+            data = await getFileData();
+            for(const listener of listeners){
+                await listener(data);
+            }
+            delta = performance.now();
+        });
     });
 
 

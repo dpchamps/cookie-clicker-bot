@@ -79,9 +79,9 @@ export const createCookieClickerPage = async (browser: Browser) => {
     await page.evaluate(aiConfig.get());
     await page.evaluate(`ScriptInjector.initializeScript()`)
     aiConfig.onUpdate(async (data) => {
-        await page.evaluate(`ScriptInjector.tearDownScript()`)
+        await page.evaluate(`ScriptInjector.tearDownScript()`);
         await page.evaluate(data);
-        await page.evaluate(`ScriptInjector.initializeScript()`)
+        await page.evaluate(`ScriptInjector.initializeScript()`);
     });
 
     setInterval(async () => {
